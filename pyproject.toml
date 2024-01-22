@@ -9,6 +9,13 @@ readme = "README.md"
 python = "^3.10"
 
 
+[tool.poetry.group.dev.dependencies]
+flake8 = "^7.0.0"
+mypy = "^1.8.0"
+black = "^23.12.1"
+isort = "^5.13.2"
+ipykernel = "^6.29.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
