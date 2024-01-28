@@ -60,7 +60,7 @@ class Classifier:
 def run_for_video(
     video_path: pathlib.Path, output_directory: pathlib.Path
 ) -> None:
-    loguru.logger.info(f"Processing {video_path}")
+    loguru.logger.info(f"Processing {video_path.name}")
 
     if output_directory.is_file():
         raise NotADirectoryError(f"{output_directory}")
