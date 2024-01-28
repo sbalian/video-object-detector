@@ -16,3 +16,9 @@ sudo apt install ffmpeg --yes
 ```bash
 ./lint.sh
 ```
+
+To run:
+
+```bash
+bicyle-detect --help
+```
