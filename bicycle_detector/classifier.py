@@ -80,7 +80,7 @@ def run_for_video(
     loguru.logger.info(f"Extracted in {int(extraction_done_time)} seconds")
 
     num_extracted_frames = len(extracted_frames)
-    batch_size = 10
+    batch_size = 5
 
     loguru.logger.info("Classifying")
 
