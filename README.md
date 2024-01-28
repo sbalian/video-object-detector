@@ -8,3 +8,11 @@ First, install [Poetry](https://python-poetry.org/). Then:
 poetry install
 ```
 
+```bash
+sudo apt update
+sudo apt install ffmpeg --yes
+```
+
+```bash
+./lint.sh
+```
