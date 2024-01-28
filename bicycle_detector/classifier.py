@@ -46,7 +46,7 @@ class Classifier:
 
         has_bicycle = []
         for score, label in zip(scores, labels):
-            if "car" in [
+            if "bicycle" in [
                 self.model.config.id2label[ll.item()]
                 for ll in label[score > self.threshold]
             ]:
