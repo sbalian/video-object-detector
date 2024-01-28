@@ -1,6 +1,7 @@
 import dataclasses
 import fractions
 import pathlib
+import time
 
 import loguru
 import torch
@@ -67,26 +68,39 @@ def run_for_video(
         output_directory.mkdir()
     video_output_directory = output_directory / video_path.name
     video_output_directory.mkdir(exist_ok=True)
+
+    loguru.logger.info("Extracting frames")
+
+    start_time = time.perf_counter()
     extracted_frames = video.extract_frames(
         video_path=video_path, fps=fractions.Fraction(1, 3)
     )
+    extraction_done_time = time.perf_counter() - start_time
+
+    loguru.logger.info(f"Extracted in {int(extraction_done_time)} seconds")
 
     num_extracted_frames = len(extracted_frames)
     batch_size = 10
 
+    loguru.logger.info("Classifying")
+
+    start_time = time.perf_counter()
+
     clf = Classifier()
-
     results = []
-
     for i in range(0, num_extracted_frames, batch_size):
         frames = extracted_frames[i : i + batch_size]
         results.extend(clf.predict(frames))
-
     counter = 0
     for result, frame in zip(results, extracted_frames):
         if result:
             save_path = video_output_directory / f"{counter}.jpg"
             frame.save(save_path)
             counter += 1
+
+    classification_done_time = time.perf_counter() - start_time
+    loguru.logger.info(
+        f"Classified in {int(classification_done_time)} seconds"
+    )
 
     return
