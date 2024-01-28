@@ -7,11 +7,14 @@ import ffmpeg
 def extract_frames(
     video_path: pathlib.Path,
     fps: fractions.Fraction,
-    output_root: pathlib.Path,
+    output_directory: pathlib.Path,
 ) -> None:
-    output_dir = output_root / video_path.name
-    output_dir.mkdir(exist_ok=True)
-    path = output_dir / "%04d.jpeg"
-    ffmpeg.input(video_path).filter(
-        "fps", fps=f"{fps.numerator}/{fps.denominator}"
-    ).output(str(path), loglevel="quiet").run()
+    if output_directory.exists() and output_directory.is_file():
+        raise NotADirectoryError(f"{output_directory}")
+    output_directory.mkdir(exist_ok=True)
+    path = output_directory / "%04d.jpeg"
+    str_fps = f"{fps.numerator}/{fps.denominator}"
+    ffmpeg.input(video_path).filter("fps", fps=str_fps).output(
+        str(path), loglevel="quiet"
+    ).run()
+    return
