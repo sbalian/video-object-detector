@@ -2,7 +2,7 @@ import concurrent.futures
 import fractions
 import functools
 import pathlib
-from typing import Annotated
+from typing import Annotated, Optional
 
 import typer
 
@@ -11,53 +11,62 @@ from . import video
 app = typer.Typer()
 
 
+def _frame_extraction_worker(
+    video_path: pathlib.Path, output_directory: pathlib.Path
+) -> None:
+    video_name = video_path.stem
+    frames_directory = output_directory / video_name
+    frames_directory.mkdir(exist_ok=True)
+    video.extract_frames(
+        video_path, fractions.Fraction(1, 3), frames_directory
+    )
+
+
 @app.command()
 def frames(
-    input: Annotated[
+    input_directory: Annotated[
         pathlib.Path,
         typer.Argument(
             exists=True,
             file_okay=False,
             dir_okay=True,
             resolve_path=True,
-            help="Directory to search for .dav files in to extract from.",
+            help="Directory containing target .dav files.",
         ),
     ],
-    output: Annotated[
+    output_directory: Annotated[
         pathlib.Path,
         typer.Option(
+            "--output-directory",
+            "-o",
             file_okay=False,
             dir_okay=True,
             resolve_path=True,
             help="Output directory.",
         ),
     ] = pathlib.Path("."),
-    workers: Annotated[
-        int,
+    max_workers: Annotated[
+        Optional[int],
         typer.Option(
-            help="Number of maximum workers (0 for number of available CPUs).",
+            "--max-workers",
+            "-w",
+            help="Number of maximum workers. Uses all CPUs when unset.",
         ),
-    ] = 0,
+    ] = None,
 ):
     """Extract frames from .dav videos in INPUT to JPEGs on disk."""
 
-    output.mkdir(exist_ok=True)
-    paths = sorted(list(input.glob("*.dav")))
+    output_directory.mkdir(exist_ok=True)
+    video_paths = sorted(list(input_directory.glob("*.dav")))
 
-    extract = functools.partial(
-        video.extract_frames, fps=fractions.Fraction(1, 3), output_root=output
+    worker = functools.partial(
+        _frame_extraction_worker, output_directory=output_directory
     )
 
-    if workers == 0:
-        max_workers = None
-    else:
-        max_workers = workers
-
     with concurrent.futures.ProcessPoolExecutor(max_workers) as executor:
-        list(executor.map(extract, paths))
+        list(executor.map(worker, video_paths))
 
 
 @app.command()
 def classify():
-    """Run bicycle classification on JPEGs in INPUT directory."""
     pass
