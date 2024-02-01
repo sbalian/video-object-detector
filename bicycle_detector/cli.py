@@ -6,7 +6,7 @@ from typing import Annotated, Optional
 
 import typer
 
-from . import video
+from . import classifier, video
 
 app = typer.Typer()
 
@@ -68,5 +68,16 @@ def frames(
 
 
 @app.command()
-def classify():
-    pass
+def classify(
+    input_directory: Annotated[
+        pathlib.Path,
+        typer.Argument(
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            resolve_path=True,
+            help="Directory containing target JPEG files.",
+        ),
+    ],
+):
+    classifier.run_for_frames(input_directory)
