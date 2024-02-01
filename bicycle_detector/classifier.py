@@ -2,7 +2,6 @@ import dataclasses
 import json
 import pathlib
 
-import loguru
 import torch
 import transformers
 from PIL import Image
@@ -70,4 +69,3 @@ def run_for_frames(frames_directory: pathlib.Path) -> None:
 
     with open(frames_directory / "pred.json", "w") as f:
         json.dump(results, f)
-    loguru.logger.info(f"Wrote {frames_directory}/pred.json")

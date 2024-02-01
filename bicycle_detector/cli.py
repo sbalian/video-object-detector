@@ -1,9 +1,11 @@
 import concurrent.futures
 import fractions
 import functools
+import os
 import pathlib
 from typing import Annotated, Optional
 
+import loguru
 import typer
 
 from . import classifier, video
@@ -54,7 +56,7 @@ def frames(
         ),
     ] = None,
 ):
-    """Extract frames from .dav videos in INPUT to JPEGs on disk."""
+    """Extract frames from .dav videos in INPUT_DIRECTORY to JPEGs on disk."""
 
     output_directory.mkdir(exist_ok=True)
     video_paths = sorted(list(input_directory.glob("*.dav")))
@@ -76,8 +78,21 @@ def classify(
             file_okay=False,
             dir_okay=True,
             resolve_path=True,
-            help="Directory containing target JPEG files.",
+            help="Directory containing target frames subdirectories.",
         ),
     ],
 ):
-    classifier.run_for_frames(input_directory)
+    """Classify JPEG frames in subdirectories of INPUT_DIRECTORY.
+
+    Writes a pred.json file in each subdirectory containing the predictions.
+    """
+
+    subdirectories = []
+    for file in os.listdir(input_directory):
+        path = input_directory / file
+        if path.is_dir():
+            subdirectories.append(path)
+
+    for frames_directory in subdirectories:
+        classifier.run_for_frames(frames_directory)
+        loguru.logger.info(f"Wrote {frames_directory / 'pred.json'}")
