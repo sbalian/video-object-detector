@@ -16,6 +16,7 @@ def is_video(file: pathlib.Path) -> bool:
     for stream in probe["streams"]:
         if stream["codec_type"] == "video":
             return True
+
     return False
 
 
