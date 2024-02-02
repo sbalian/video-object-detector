@@ -1,4 +1,4 @@
-"""Video manipulation."""
+"""Video manipulation using ffmpeg."""
 
 import fractions
 import pathlib
@@ -7,10 +7,7 @@ import ffmpeg
 
 
 def is_video(file: pathlib.Path) -> bool:
-    """Returns True if `file` has at least one video channel.
-
-    Uses ffmpeg.
-    """
+    """Returns True if `file` has at least one video channel."""
 
     if not file.exists():
         raise FileNotFoundError(f"{file}")
