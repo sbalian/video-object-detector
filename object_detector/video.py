@@ -6,15 +6,15 @@ import pathlib
 import ffmpeg
 
 
-def is_video(file: pathlib.Path) -> bool:
-    """Returns True if `file` has at least one video channel."""
+def is_video(path: pathlib.Path) -> bool:
+    """Returns True if `path` has at least one video channel."""
 
-    if not file.exists():
-        raise FileNotFoundError(f"{file}")
-    if file.is_dir():
-        raise IsADirectoryError(f"{file}")
+    if not path.exists():
+        raise FileNotFoundError(f"{path}")
+    if path.is_dir():
+        raise IsADirectoryError(f"{path}")
 
-    probe = ffmpeg.probe(file)
+    probe = ffmpeg.probe(path)
     for stream in probe["streams"]:
         if stream["codec_type"] == "video":
             return True
