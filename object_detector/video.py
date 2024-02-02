@@ -1,3 +1,5 @@
+"""Video manipulation."""
+
 import fractions
 import pathlib
 
