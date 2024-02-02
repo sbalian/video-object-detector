@@ -1,4 +1,4 @@
-# Bicycle detector
+# Object detector
 
 ## Development
 
