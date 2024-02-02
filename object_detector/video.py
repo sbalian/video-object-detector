@@ -5,7 +5,10 @@ import ffmpeg
 
 
 def is_video(file: pathlib.Path) -> bool:
-    """Returns True if `file` has at least one video channel."""
+    """Returns True if `file` has at least one video channel.
+
+    Uses ffmpeg.
+    """
 
     if not file.exists():
         raise FileNotFoundError(f"{file}")
