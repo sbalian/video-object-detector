@@ -21,6 +21,9 @@ black = "^23.12.1"
 isort = "^5.13.2"
 ipykernel = "^6.29.0"
 pytest = "^8.0.0"
+numpy = "^1.26.3"
+moviepy = "^1.0.3"
+wavio = "^0.0.8"
 
 [[tool.poetry.source]]
 name = "PyPI"
