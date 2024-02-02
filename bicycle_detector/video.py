@@ -4,6 +4,21 @@ import pathlib
 import ffmpeg
 
 
+def is_video(file: pathlib.Path) -> bool:
+    """Returns True if `file` has at least one video channel."""
+
+    if not file.exists():
+        raise FileNotFoundError(f"{file}")
+    if file.is_dir():
+        raise IsADirectoryError(f"{file}")
+
+    probe = ffmpeg.probe(file)
+    for stream in probe["streams"]:
+        if stream["codec_type"] == "video":
+            return True
+    return False
+
+
 def extract_frames(
     video_path: pathlib.Path,
     fps: fractions.Fraction,
