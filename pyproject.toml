@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "bicycle-detector"
+name = "object-detector"
 version = "0.1.0"
 description = ""
 authors = ["Seto Balian <seto.balian@gmail.com>"]
