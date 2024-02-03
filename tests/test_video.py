@@ -39,7 +39,7 @@ def test_extract_frames(sample_video):
     video.extract_frames(sample_video, fractions.Fraction(5, 1))
     assert sorted(
         os.listdir(sample_video.parent / f"{sample_video.stem}.frames")
-    ) == [f"{i + 1}".zfill(4) + ".jpeg" for i in range(10)]
+    ) == [f"{i + 1}".zfill(4) + ".jpeg" for i in range(25)]
 
 
 def test_extract_frames_raises_for_existing_directory(sample_video):
