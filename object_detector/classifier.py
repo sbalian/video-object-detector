@@ -80,8 +80,9 @@ class Classifier:
 
 
 def batch_run(
-    image_paths: list[pathlib.Path], batch_size: int = 10
+    image_paths: list[pathlib.Path], batch_size: int
 ) -> list[Prediction]:
+    """Classify `image_paths` in batches of size `batch_size`."""
 
     clf = Classifier()
     predictions = []
