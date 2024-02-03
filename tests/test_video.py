@@ -2,17 +2,15 @@ import fractions
 import os
 import pathlib
 
-import ffmpeg
 import pytest
 
 from object_detector import video
 
 
-def test_is_video_raises_for_directory(tmp_path):
+def test_is_video_returns_false_for_directory(tmp_path):
     directory = tmp_path / "foo"
     directory.mkdir()
-    with pytest.raises(IsADirectoryError):
-        video.is_video(directory)
+    assert not video.is_video(directory)
 
 
 def test_is_video_raises_for_non_existing_file():
@@ -20,11 +18,11 @@ def test_is_video_raises_for_non_existing_file():
         video.is_video(pathlib.Path("foo"))
 
 
-def test_is_video_raises_for_non_media_file(tmp_path):
-    with open(tmp_path / "foo.txt", "w") as f:
+def test_is_video_returns_false_for_non_media_file(tmp_path):
+    path = tmp_path / "foo.txt"
+    with open(path, "w") as f:
         f.write("foo")
-    with pytest.raises(ffmpeg._run.Error):
-        video.is_video(tmp_path / "foo.txt")
+    assert not video.is_video(path)
 
 
 def test_is_video_returns_false_for_wav_file(sample_wav):

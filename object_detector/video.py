@@ -12,9 +12,13 @@ def is_video(path: pathlib.Path) -> bool:
     if not path.exists():
         raise FileNotFoundError(f"{path}")
     if path.is_dir():
-        raise IsADirectoryError(f"{path}")
+        return False
 
-    probe = ffmpeg.probe(path)
+    try:
+        probe = ffmpeg.probe(path)
+    except ffmpeg._run.Error:
+        return False
+
     for stream in probe["streams"]:
         if stream["codec_type"] == "video":
             return True
@@ -40,7 +44,7 @@ def extract_frames(
 
     if output_directory.exists() and output_directory.is_file():
         raise NotADirectoryError(f"{output_directory}")
-    output_directory.mkdir(exist_ok=False)
+    output_directory.mkdir(exist_ok=True)
 
     ffmpeg.input(video_path).filter(
         "fps", fps=f"{fps.numerator}/{fps.denominator}"
