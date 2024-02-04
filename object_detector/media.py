@@ -1,3 +1,5 @@
+"""Video and image manipulation."""
+
 import fractions
 import mimetypes
 import pathlib
