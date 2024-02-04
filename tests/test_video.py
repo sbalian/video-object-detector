@@ -31,3 +31,11 @@ def test_extract_frames(sample_video):
     assert sorted(
         os.listdir(sample_video.parent / f"{sample_video.stem}.frames")
     ) == [f"{i + 1}".zfill(4) + ".jpeg" for i in range(25)]
+
+
+def test_extract_frames_raises_for_text_file(tmp_path):
+    path = tmp_path / "file.txt"
+    with open(path, "w") as f:
+        f.write("foo")
+    with pytest.raises(video.FrameExtractionError):
+        video.extract_frames(path, fractions.Fraction(5, 1))

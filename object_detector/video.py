@@ -10,6 +10,10 @@ import ffmpeg
 EXTRA_VIDEO_TYPES = (".dav",)
 
 
+class FrameExtractionError(Exception):
+    pass
+
+
 def is_likely_video(path: pathlib.Path) -> bool:
     """Returns True if `path` is likely a video (uses MIME)."""
 
@@ -38,8 +42,13 @@ def extract_frames(
     output_directory = video_path.parent / f"{video_path.stem}.frames"
     output_directory.mkdir(exist_ok=True)
 
-    ffmpeg.input(video_path).filter(
-        "fps", fps=f"{fps.numerator}/{fps.denominator}"
-    ).output(
-        (output_directory / ffmpeg_output).as_posix(), loglevel="quiet"
-    ).run()
+    try:
+        ffmpeg.input(video_path).filter(
+            "fps", fps=f"{fps.numerator}/{fps.denominator}"
+        ).output(
+            (output_directory / ffmpeg_output).as_posix(), loglevel="error"
+        ).run(
+            capture_stderr=True
+        )
+    except ffmpeg.Error as ffmpeg_error:
+        raise FrameExtractionError(ffmpeg_error.stderr.decode())
