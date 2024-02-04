@@ -41,9 +41,6 @@ def extract_frames(
     """
 
     output_directory = video_path.parent / f"{video_path.stem}.frames"
-
-    if output_directory.exists() and output_directory.is_file():
-        raise NotADirectoryError(f"{output_directory}")
     output_directory.mkdir(exist_ok=True)
 
     ffmpeg.input(video_path).filter(
