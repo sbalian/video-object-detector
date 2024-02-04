@@ -4,6 +4,7 @@ Model from: https://huggingface.co/facebook/detr-resnet-101.
 """
 
 import dataclasses
+import datetime
 import pathlib
 from typing import TypedDict, TypeVar
 
@@ -22,6 +23,7 @@ class PredictionJSON(TypedDict):
     labels: list[str]
     scores: list[float]
     image_path: str
+    timestamp: float
 
 
 @dataclasses.dataclass
@@ -29,6 +31,7 @@ class Prediction:
     labels: list[str]
     scores: list[float]
     image_path: pathlib.Path
+    timestamp: datetime.datetime
 
     def top_n(self, n: int, threshold: float) -> list[tuple[float, str]]:
         """Return top `n` labels sorted by score > `threshold`."""
@@ -50,6 +53,7 @@ class Prediction:
             labels=self.labels,
             scores=self.scores,
             image_path=self.image_path.as_posix(),
+            timestamp=self.timestamp.timestamp(),
         )
 
     @classmethod
@@ -60,6 +64,7 @@ class Prediction:
             labels=json_["labels"],
             scores=json_["scores"],
             image_path=pathlib.Path(json_["image_path"]),
+            timestamp=datetime.datetime.fromtimestamp(json_["timestamp"]),
         )
 
 
@@ -105,6 +110,7 @@ class Classifier:
                 ],
                 scores=[float(score) for score in scores_],
                 image_path=image_path,
+                timestamp=datetime.datetime.now(),
             )
             for scores_, labels_, image_path in zip(
                 scores, labels, image_paths

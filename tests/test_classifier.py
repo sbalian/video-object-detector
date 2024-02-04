@@ -1,3 +1,4 @@
+import datetime
 import pathlib
 
 import pytest
@@ -11,6 +12,7 @@ def sample_prediction():
         labels=["car", "cat", "bicycle"],
         scores=[0.1, 0.9, 0.2],
         image_path=pathlib.Path("image.jpg"),
+        timestamp=datetime.datetime(2024, 2, 4, 23, 25, 53, 112918),
     )
 
 
@@ -20,6 +22,7 @@ def sample_prediction_json():
         labels=["car", "cat", "bicycle"],
         scores=[0.1, 0.9, 0.2],
         image_path="image.jpg",
+        timestamp=1707089153.112918,
     )
 
 
@@ -60,6 +63,7 @@ def test_batch_run(mocker):
         labels=["cat"],
         scores=[0.9],
         image_path=pathlib.Path("tests/data/cat.jpg"),
+        timestamp=datetime.datetime.now(),
     )
     batch_size = 10
     total_length = 100
