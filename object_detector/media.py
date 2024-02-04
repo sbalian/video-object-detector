@@ -1,5 +1,3 @@
-"""Video manipulation using ffmpeg."""
-
 import fractions
 import mimetypes
 import pathlib
