@@ -2289,20 +2289,6 @@ socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
 zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
-name = "wavio"
-version = "0.0.8"
-description = "A Python module for reading and writing WAV files using numpy arrays."
-optional = false
-python-versions = "*"
-files = [
-    {file = "wavio-0.0.8-py3-none-any.whl", hash = "sha256:728d5c3815a9f254dc5846cdd79168eed32aa9e4fcf9476cf232bcbe5340b5ce"},
-    {file = "wavio-0.0.8.tar.gz", hash = "sha256:51c13768885d4095ba082547857502e2123905db547faebdc007e03ade18ed5d"},
-]
-
-[package.dependencies]
-numpy = ">=1.19.0"
-
-[[package]]
 name = "wcwidth"
 version = "0.2.13"
 description = "Measures the displayed width of unicode strings in a terminal"
@@ -2330,4 +2316,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "d608cb58ff8ceba9303bb5dcfd61f1f8411b9ed07c7fce49114cb63ea71d8d58"
+content-hash = "bc275bc3631b315c0ee5def5f7799ec296670f8d80a51f4c52b7b824cfb29375"
