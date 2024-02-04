@@ -7,30 +7,23 @@ import pytest
 from object_detector import video
 
 
-def test_is_video_returns_false_for_directory(tmp_path):
-    directory = tmp_path / "foo"
-    directory.mkdir()
-    assert not video.is_video(directory)
-
-
-def test_is_video_raises_for_non_existing_file():
-    with pytest.raises(FileNotFoundError):
-        video.is_video(pathlib.Path("foo"))
-
-
-def test_is_video_returns_false_for_non_media_file(tmp_path):
-    path = tmp_path / "foo.txt"
-    with open(path, "w") as f:
-        f.write("foo")
-    assert not video.is_video(path)
-
-
-def test_is_video_returns_false_for_wav_file(sample_wav):
-    assert not video.is_video(sample_wav)
-
-
-def test_is_video_returns_true_for_video_file(sample_video):
-    assert video.is_video(sample_video)
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        (pathlib.Path("test"), False),
+        (pathlib.Path("test.mp3"), False),
+        (pathlib.Path("test.jpeg"), False),
+        (pathlib.Path("test.txt"), False),
+        (pathlib.Path("test.wav"), False),
+        (pathlib.Path("test.mp4"), True),
+        (pathlib.Path("test.dav"), True),
+        (pathlib.Path("test.mov"), True),
+        (pathlib.Path("test.wmv"), True),
+        (pathlib.Path("test.avi"), True),
+    ],
+)
+def test_is_likely_video(test_input, expected):
+    assert video.is_likely_video(test_input) == expected
 
 
 def test_extract_frames(sample_video):

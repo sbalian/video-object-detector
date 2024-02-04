@@ -1,29 +1,24 @@
 """Video manipulation using ffmpeg."""
 
 import fractions
+import mimetypes
 import pathlib
 
 import ffmpeg
 
+# Video extensions outside of MIME
+EXTRA_VIDEO_TYPES = (".dav",)
 
-def is_video(path: pathlib.Path) -> bool:
-    """Returns True if `path` has at least one video channel."""
 
-    if not path.exists():
-        raise FileNotFoundError(f"{path}")
-    if path.is_dir():
-        return False
+def is_likely_video(path: pathlib.Path) -> bool:
+    """Returns True if `path` is likely a video (uses MIME)."""
 
-    try:
-        probe = ffmpeg.probe(path)
-    except ffmpeg._run.Error:
-        return False
-
-    for stream in probe["streams"]:
-        if stream["codec_type"] == "video":
-            return True
-
-    return False
+    type_, _ = mimetypes.guess_type(path)
+    if type_ is None:
+        extension = path.suffix
+        return extension in EXTRA_VIDEO_TYPES
+    else:
+        return type_.split("/")[0] == "video"
 
 
 def extract_frames(
