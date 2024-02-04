@@ -5,14 +5,23 @@ Model from: https://huggingface.co/facebook/detr-resnet-101.
 
 import dataclasses
 import pathlib
+from typing import TypedDict, TypeVar
 
 import torch
 import transformers
 from PIL import Image
 
+PredictionT = TypeVar("PredictionT", bound="Prediction")
+
 
 class NoGPUError(Exception):
     pass
+
+
+class PredictionJSON(TypedDict):
+    labels: list[str]
+    scores: list[float]
+    image_path: str
 
 
 @dataclasses.dataclass
@@ -35,6 +44,23 @@ class Prediction:
             reverse=True,
             key=lambda x: x[0],
         )[:n]
+
+    def to_json(self) -> PredictionJSON:
+        return dict(
+            labels=self.labels,
+            scores=self.scores,
+            image_path=self.image_path.as_posix(),
+        )
+
+    @classmethod
+    def from_json(
+        cls: type[PredictionT], json_: PredictionJSON
+    ) -> PredictionT:
+        return cls(
+            labels=json_["labels"],
+            scores=json_["scores"],
+            image_path=pathlib.Path(json_["image_path"]),
+        )
 
 
 @dataclasses.dataclass

@@ -1,17 +1,43 @@
 import pathlib
 
+import pytest
+
 from object_detector import classifier
 
 
-def test_prediction_top_n():
-    prediction = classifier.Prediction(
+@pytest.fixture
+def sample_prediction():
+    return classifier.Prediction(
         labels=["car", "cat", "bicycle"],
         scores=[0.1, 0.9, 0.2],
         image_path=pathlib.Path("image.jpg"),
     )
-    assert prediction.top_n(2, 0.05) == [(0.9, "cat"), (0.2, "bicycle")]
-    assert prediction.top_n(2, 0.5) == [(0.9, "cat")]
-    assert prediction.top_n(1, 0.8) == [(0.9, "cat")]
+
+
+@pytest.fixture
+def sample_prediction_json():
+    return dict(
+        labels=["car", "cat", "bicycle"],
+        scores=[0.1, 0.9, 0.2],
+        image_path="image.jpg",
+    )
+
+
+def test_prediction_top_n(sample_prediction):
+    assert sample_prediction.top_n(2, 0.05) == [(0.9, "cat"), (0.2, "bicycle")]
+    assert sample_prediction.top_n(2, 0.5) == [(0.9, "cat")]
+    assert sample_prediction.top_n(1, 0.8) == [(0.9, "cat")]
+
+
+def test_prediction_to_json(sample_prediction, sample_prediction_json):
+    assert sample_prediction.to_json() == sample_prediction_json
+
+
+def test_prediction_from_json(sample_prediction, sample_prediction_json):
+    assert (
+        classifier.Prediction.from_json(sample_prediction_json)
+        == sample_prediction
+    )
 
 
 def test_classifier_predicts():
