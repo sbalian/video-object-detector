@@ -41,6 +41,23 @@ def test_is_likely_video(test_input, expected):
     assert media.is_likely_video(test_input) == expected
 
 
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        (pathlib.Path("test"), False),
+        (pathlib.Path("test.mp3"), False),
+        (pathlib.Path("test.jpeg"), True),
+        (pathlib.Path("test.txt"), False),
+        (pathlib.Path("test.wav"), False),
+        (pathlib.Path("test.mp4"), False),
+        (pathlib.Path("test.png"), True),
+        (pathlib.Path("test.svg"), True),
+    ],
+)
+def test_is_likely_image(test_input, expected):
+    assert media.is_likely_image(test_input) == expected
+
+
 def test_extract_frames(sample_video):
     media.extract_frames(sample_video, fractions.Fraction(5, 1))
     assert sorted(

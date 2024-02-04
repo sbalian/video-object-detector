@@ -25,6 +25,16 @@ def is_likely_video(path: pathlib.Path) -> bool:
         return type_.split("/")[0] == "video"
 
 
+def is_likely_image(path: pathlib.Path) -> bool:
+    """Returns True if `path` is likely an image (uses MIME)."""
+
+    type_, _ = mimetypes.guess_type(path)
+    if type_ is None:
+        return False
+    else:
+        return type_.split("/")[0] == "image"
+
+
 def extract_frames(
     video_path: pathlib.Path,
     fps: fractions.Fraction,
