@@ -6,28 +6,18 @@ Model from: https://huggingface.co/facebook/detr-resnet-101.
 import dataclasses
 import datetime
 import pathlib
-from typing import TypedDict, TypeVar
 
+import pydantic
 import torch
 import transformers
 from PIL import Image
-
-PredictionT = TypeVar("PredictionT", bound="Prediction")
 
 
 class NoGPUError(Exception):
     pass
 
 
-class PredictionJSON(TypedDict):
-    labels: list[str]
-    scores: list[float]
-    image_path: str
-    timestamp: float
-
-
-@dataclasses.dataclass
-class Prediction:
+class Prediction(pydantic.BaseModel):
     labels: list[str]
     scores: list[float]
     image_path: pathlib.Path
@@ -47,25 +37,6 @@ class Prediction:
             reverse=True,
             key=lambda x: x[0],
         )[:n]
-
-    def to_json(self) -> PredictionJSON:
-        return dict(
-            labels=self.labels,
-            scores=self.scores,
-            image_path=self.image_path.as_posix(),
-            timestamp=self.timestamp.timestamp(),
-        )
-
-    @classmethod
-    def from_json(
-        cls: type[PredictionT], json_: PredictionJSON
-    ) -> PredictionT:
-        return cls(
-            labels=json_["labels"],
-            scores=json_["scores"],
-            image_path=pathlib.Path(json_["image_path"]),
-            timestamp=datetime.datetime.fromtimestamp(json_["timestamp"]),
-        )
 
 
 @dataclasses.dataclass

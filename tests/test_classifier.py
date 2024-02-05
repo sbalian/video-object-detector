@@ -16,31 +16,16 @@ def sample_prediction():
     )
 
 
-@pytest.fixture
-def sample_prediction_json():
-    return dict(
-        labels=["car", "cat", "bicycle"],
-        scores=[0.1, 0.9, 0.2],
-        image_path="image.jpg",
-        timestamp=1707089153.112918,
-    )
-
-
-def test_prediction_top_n(sample_prediction):
-    assert sample_prediction.top_n(2, 0.05) == [(0.9, "cat"), (0.2, "bicycle")]
-    assert sample_prediction.top_n(2, 0.5) == [(0.9, "cat")]
-    assert sample_prediction.top_n(1, 0.8) == [(0.9, "cat")]
-
-
-def test_prediction_to_json(sample_prediction, sample_prediction_json):
-    assert sample_prediction.to_json() == sample_prediction_json
-
-
-def test_prediction_from_json(sample_prediction, sample_prediction_json):
-    assert (
-        classifier.Prediction.from_json(sample_prediction_json)
-        == sample_prediction
-    )
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        ((2, 0.05), [(0.9, "cat"), (0.2, "bicycle")]),
+        ((2, 0.5), [(0.9, "cat")]),
+        ((1, 0.8), [(0.9, "cat")]),
+    ],
+)
+def test_prediction_top_n(test_input, expected, sample_prediction):
+    assert sample_prediction.top_n(*test_input) == expected
 
 
 def test_classifier_predicts():
