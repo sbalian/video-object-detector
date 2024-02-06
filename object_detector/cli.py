@@ -1,31 +1,28 @@
 import concurrent.futures
+import datetime
 import fractions
 import functools
-import os
 import pathlib
 from typing import Annotated, Optional
 
-import loguru
+import rich.console
+import rich.progress
 import typer
+from loguru import logger
 
-from . import classifier, video
+from . import media
 
 app = typer.Typer()
 
+DATETIME_FORMAT = "%m-%d-%Y %H:%M:%S"
 
-def _frame_extraction_worker(
-    video_path: pathlib.Path, output_directory: pathlib.Path
-) -> None:
-    video_name = video_path.stem
-    frames_directory = output_directory / video_name
-    frames_directory.mkdir(exist_ok=True)
-    video.extract_frames(
-        video_path, fractions.Fraction(1, 3), frames_directory
-    )
+
+def fraction(value: str) -> fractions.Fraction:
+    return fractions.Fraction(value)
 
 
 @app.command()
-def frames(
+def extract_frames(
     input_directory: Annotated[
         pathlib.Path,
         typer.Argument(
@@ -33,66 +30,73 @@ def frames(
             file_okay=False,
             dir_okay=True,
             resolve_path=True,
-            help="Directory containing target .dav files.",
+            help="Directory containing videos.",
         ),
     ],
-    output_directory: Annotated[
-        pathlib.Path,
+    fps: Annotated[
+        fractions.Fraction,
         typer.Option(
-            "--output-directory",
-            "-o",
-            file_okay=False,
-            dir_okay=True,
-            resolve_path=True,
-            help="Output directory.",
+            "--fps",
+            "-f",
+            help="Frames per second to extract. "
+            "For example, 25/1 means extract 25 frames every 1 second.",
+            parser=fraction,
         ),
-    ] = pathlib.Path("."),
-    max_workers: Annotated[
+    ] = fractions.Fraction(1, 3),
+    workers: Annotated[
         Optional[int],
         typer.Option(
-            "--max-workers",
+            "--workers",
             "-w",
-            help="Number of maximum workers. Uses all CPUs when unset.",
+            help="Number of maximum workers passed to multiprocessing (number "
+            "of available CPUs if unset).",
         ),
     ] = None,
-):
-    """Extract frames from .dav videos in INPUT_DIRECTORY to JPEGs on disk."""
-
-    output_directory.mkdir(exist_ok=True)
-    video_paths = sorted(list(input_directory.glob("*.dav")))
-
-    worker = functools.partial(
-        _frame_extraction_worker, output_directory=output_directory
-    )
-
-    with concurrent.futures.ProcessPoolExecutor(max_workers) as executor:
-        list(executor.map(worker, video_paths))
-
-
-@app.command()
-def classify(
-    input_directory: Annotated[
-        pathlib.Path,
-        typer.Argument(
-            exists=True,
-            file_okay=False,
-            dir_okay=True,
-            resolve_path=True,
-            help="Directory containing target frames subdirectories.",
+    output: Annotated[
+        str,
+        typer.Option(
+            "--output",
+            "-o",
+            help="ffmpeg output.",
         ),
-    ],
+    ] = "%04d.jpeg",
 ):
-    """Classify JPEG frames in subdirectories of INPUT_DIRECTORY.
+    """Extract frames from videos in INPUT_DIRECTORY.
 
-    Writes a pred.json file in each subdirectory containing the predictions.
+    For each video a <name>.frames/ subdirectory is created containing the
+    extracted frames, where <name> is the name of the video without its
+    extension.
     """
 
-    subdirectories = []
-    for file in os.listdir(input_directory):
-        path = input_directory / file
-        if path.is_dir():
-            subdirectories.append(path)
+    console = rich.console.Console()
 
-    for frames_directory in subdirectories:
-        classifier.run_for_frames(frames_directory)
-        loguru.logger.info(f"Wrote {frames_directory / 'pred.json'}")
+    worker = functools.partial(
+        media.extract_frames,
+        fps=fps,
+        ffmpeg_output=output,
+    )
+
+    with console.status(f"Looking for videos in {input_directory} ..."):
+        paths = [
+            path
+            for path in input_directory.glob("*")
+            if media.is_likely_video(path)
+        ]
+    console.print(f"Found {len(paths)} videos.")
+
+    console.print(
+        "Extraction started: "
+        f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
+    )
+    with console.status("Extracting frames ..."):
+        with concurrent.futures.ProcessPoolExecutor(workers) as executor:
+            futures = [executor.submit(worker, path) for path in paths]
+    for future in concurrent.futures.as_completed(futures):
+        try:
+            future.result()
+        except media.FrameExtractionError as extraction_error:
+            logger.error(extraction_error)
+    console.print(
+        "Extraction ended: "
+        f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
+    )
