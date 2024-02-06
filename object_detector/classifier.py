@@ -3,7 +3,6 @@
 Model from: https://huggingface.co/facebook/detr-resnet-101.
 """
 
-import dataclasses
 import datetime
 import pathlib
 
@@ -39,13 +38,10 @@ class Prediction(pydantic.BaseModel):
         )[:n]
 
 
-@dataclasses.dataclass
 class Classifier:
-    processor: transformers.DetrImageProcessor = dataclasses.field(init=False)
-    model: transformers.DetrForObjectDetection = dataclasses.field(init=False)
-    use_gpu: bool = True
 
-    def __post_init__(self):
+    def __init__(self, use_gpu: bool = True) -> None:
+        self.use_gpu = use_gpu
         model_name = "facebook/detr-resnet-101"
         revision = "no_timm"
         self.processor = transformers.DetrImageProcessor.from_pretrained(
