@@ -29,8 +29,6 @@ def test_prediction_top_n(test_input, expected, sample_prediction):
 
 
 def test_classifier_predicts():
-    # Cat from https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Orange_tabby_cat_sitting_on_fallen_leaves-Hisashi-01A.jpg/360px-Orange_tabby_cat_sitting_on_fallen_leaves-Hisashi-01A.jpg  # noqa
-
     clf = classifier.Classifier(use_gpu=False)
     [prediction1, prediction2] = clf.predict(
         [
@@ -47,7 +45,7 @@ def test_batch_run(mocker):
     prediction = classifier.Prediction(
         labels=["cat"],
         scores=[0.9],
-        image_path=pathlib.Path("tests/data/cat.jpg"),
+        image_path=pathlib.Path("cat.jpg"),
         timestamp=datetime.datetime.now(),
     )
     batch_size = 10
@@ -58,7 +56,7 @@ def test_batch_run(mocker):
     )
     assert (
         classifier.batch_run(
-            [pathlib.Path("tests/data/cat.jpg")] * total_length,
+            [pathlib.Path("cat.jpg")] * total_length,
             batch_size=batch_size,
         )
         == [prediction] * total_length

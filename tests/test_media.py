@@ -1,25 +1,17 @@
 import fractions
 import os
 import pathlib
+import shutil
 
-import moviepy.editor as mpy
-import numpy as np
 import pytest
 
 from object_detector import media
 
 
-def make_random_image(time) -> np.ndarray:
-    imarray = np.random.rand(100, 100, 3) * 255
-    return imarray.astype("uint8")
-
-
 @pytest.fixture
 def sample_video(tmp_path):
-    path = tmp_path / "foo.mp4"
-    clip = mpy.VideoClip(make_random_image, duration=5)
-    clip.write_videofile(path.as_posix(), fps=25)
-    return path
+    shutil.copy("tests/data/cat.mp4", tmp_path)
+    return tmp_path / "cat.mp4"
 
 
 @pytest.mark.parametrize(
@@ -59,10 +51,10 @@ def test_is_likely_image(test_input, expected):
 
 
 def test_extract_frames(sample_video):
-    media.extract_frames(sample_video, fractions.Fraction(5, 1))
+    media.extract_frames(sample_video, fractions.Fraction(1, 2))
     assert sorted(
         os.listdir(sample_video.parent / f"{sample_video.stem}.frames")
-    ) == [f"{i + 1}".zfill(4) + ".jpeg" for i in range(25)]
+    ) == [f"{i + 1}".zfill(4) + ".jpeg" for i in range(8)]
 
 
 def test_extract_frames_raises_for_text_file(tmp_path):
