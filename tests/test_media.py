@@ -23,14 +23,23 @@ def sample_video(tmp_path):
         (pathlib.Path("test.txt"), False),
         (pathlib.Path("test.wav"), False),
         (pathlib.Path("test.mp4"), True),
+        (pathlib.Path("test.MP4"), True),
         (pathlib.Path("test.dav"), True),
+        (pathlib.Path("test.DAV"), True),
         (pathlib.Path("test.mov"), True),
         (pathlib.Path("test.wmv"), True),
         (pathlib.Path("test.avi"), True),
+        (pathlib.Path("test.heif"), False),
     ],
 )
 def test_is_likely_video(test_input, expected):
     assert media.is_likely_video(test_input) == expected
+
+
+def test_is_likely_video_returns_false_for_dir(tmp_path):
+    test_dir = tmp_path / "test.mp4"
+    test_dir.mkdir()
+    assert not media.is_likely_video(test_dir)
 
 
 @pytest.mark.parametrize(
@@ -39,15 +48,24 @@ def test_is_likely_video(test_input, expected):
         (pathlib.Path("test"), False),
         (pathlib.Path("test.mp3"), False),
         (pathlib.Path("test.jpeg"), True),
+        (pathlib.Path("test.jpg"), True),
+        (pathlib.Path("test.JPG"), True),
         (pathlib.Path("test.txt"), False),
         (pathlib.Path("test.wav"), False),
         (pathlib.Path("test.mp4"), False),
         (pathlib.Path("test.png"), True),
         (pathlib.Path("test.svg"), True),
+        (pathlib.Path("test.heif"), True),
     ],
 )
 def test_is_likely_image(test_input, expected):
     assert media.is_likely_image(test_input) == expected
+
+
+def test_is_likely_image_returns_false_for_dir(tmp_path):
+    test_dir = tmp_path / "test.jpeg"
+    test_dir.mkdir()
+    assert not media.is_likely_image(test_dir)
 
 
 def test_extract_frames(sample_video):

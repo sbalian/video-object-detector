@@ -6,7 +6,7 @@ import pathlib
 
 import ffmpeg
 
-# Video extensions outside of MIME
+# Video extensions outside of MIME (lowercase and with the .)
 EXTRA_VIDEO_TYPES = (".dav",)
 
 
@@ -17,16 +17,22 @@ class FrameExtractionError(Exception):
 def is_likely_video(path: pathlib.Path) -> bool:
     """Returns True if `path` is likely a video (uses MIME)."""
 
+    if path.is_dir():
+        return False
+
     type_, _ = mimetypes.guess_type(path)
     if type_ is None:
         extension = path.suffix
-        return extension in EXTRA_VIDEO_TYPES
+        return extension.lower() in EXTRA_VIDEO_TYPES
     else:
         return type_.split("/")[0] == "video"
 
 
 def is_likely_image(path: pathlib.Path) -> bool:
     """Returns True if `path` is likely an image (uses MIME)."""
+
+    if path.is_dir():
+        return False
 
     type_, _ = mimetypes.guess_type(path)
     if type_ is None:
