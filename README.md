@@ -1,24 +1,53 @@
-# Object detector
+# Detect objects of interest in videos
 
-## Development
+I set this up to try and find a stolen bike in hours of CCTV footage. It
+uses [detr-resnet-101](https://huggingface.co/facebook/detr-resnet-101)
+by
+[Carion et al., End-to-End Object Detection with Transformers, 2020](https://arxiv.org/abs/2005.12872)
+to locate objects in videos.
 
-First, install [Poetry](https://python-poetry.org/). Then:
+## Installation
 
-```bash
-poetry install
-```
+Install [Poetry](https://python-poetry.org/). Then:
 
 ```bash
 sudo apt update
 sudo apt install ffmpeg --yes
+
+git clone <repo-path>
+cd <repo-path>
+poetry install
 ```
 
+## Usage
+
+There are two steps: frame extraction and frame classification.
+
 ```bash
-./lint.sh
+poetry run object-detect extract-frames videos/
 ```
 
-To run:
+This will extract frames from the videos found in `videos`.
 
 ```bash
-bicyle-detect --help
+poetry run object-detect extract-frames videos/video1.frames/
+```
+
+This will classify the frames for `video1`, writing the results to
+`videos/video1.frames/predictions.od` (prediction JSON for image per line).
+
+For more CLI options:
+
+```bash
+poetry run object-detect --help
+poetry run object-detect extract-frames --help
+poetry run object-detect classify --help
+```
+
+## Development
+
+Follow the installation instructions above. To run the tests:
+
+```bash
+./test.sh
 ```
