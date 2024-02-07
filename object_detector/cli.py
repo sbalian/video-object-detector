@@ -103,7 +103,7 @@ def extract_frames(
 
 
 @app.command()
-def classify(
+def detect(
     input_directory: Annotated[
         pathlib.Path,
         typer.Argument(
