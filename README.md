@@ -8,14 +8,20 @@ to locate objects in videos.
 
 ## Installation
 
-Install [Poetry](https://python-poetry.org/). Then:
+Make sure you have Python 3.10+. Next, install
+[Poetry](https://python-poetry.org/). Then:
 
 ```bash
+# Install ffmpeg. For example, on Linux:
 sudo apt update
 sudo apt install ffmpeg --yes
 
+# Clone this repo and navigate to it
 git clone <repo-path>
 cd <repo-path>
+
+# Install the Python package, its dependencies and the
+# object-detect CLI tool
 poetry install
 ```
 
