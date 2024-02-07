@@ -27,10 +27,10 @@ There are two steps: frame extraction and frame classification.
 poetry run object-detect extract-frames videos/
 ```
 
-This will extract frames from the videos found in `videos`.
+This will extract frames from the videos found in `videos/`.
 
 ```bash
-poetry run object-detect extract-frames videos/video1.frames/
+poetry run object-detect detect videos/video1.frames/
 ```
 
 This will classify the frames for `video1`, writing the results to
@@ -41,7 +41,7 @@ For more CLI options:
 ```bash
 poetry run object-detect --help
 poetry run object-detect extract-frames --help
-poetry run object-detect classify --help
+poetry run object-detect detect --help
 ```
 
 ## Development
