@@ -71,7 +71,14 @@ class Classifier:
         if self.use_gpu:
             inputs = inputs.to("cuda")
 
-        outputs = self.model(**inputs)
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                category=UserWarning,
+                module="torch.nn.modules.conv",
+                lineno=456,
+            )
+            outputs = self.model(**inputs)
         out_logits = outputs.logits
         prob = torch.nn.functional.softmax(out_logits, -1)
         scores, labels = prob[..., :-1].max(-1)
