@@ -40,7 +40,6 @@ class Prediction(pydantic.BaseModel):
 
 
 class Classifier:
-
     def __init__(self, use_gpu: bool = True) -> None:
         self.use_gpu = use_gpu
         model_name = "facebook/detr-resnet-101"
