@@ -5,6 +5,7 @@ Model from: https://huggingface.co/facebook/detr-resnet-101.
 
 import datetime
 import pathlib
+import warnings
 
 import pydantic
 import torch
@@ -47,9 +48,16 @@ class Classifier:
         self.processor = transformers.DetrImageProcessor.from_pretrained(
             model_name, revision=revision
         )
-        self.model = transformers.DetrForObjectDetection.from_pretrained(
-            model_name, revision=revision
-        )
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                category=UserWarning,
+                module="torch._utils",
+                lineno=831,
+            )
+            self.model = transformers.DetrForObjectDetection.from_pretrained(
+                model_name, revision=revision
+            )
         if self.use_gpu:
             if torch.cuda.is_available():
                 self.model.to("cuda")
@@ -86,11 +94,11 @@ class Classifier:
 
 
 def batch_run(
-    image_paths: list[pathlib.Path], batch_size: int
+    image_paths: list[pathlib.Path], batch_size: int, use_gpu: bool
 ) -> list[Prediction]:
     """Classify `image_paths` in batches of size `batch_size`."""
 
-    clf = Classifier()
+    clf = Classifier(use_gpu=use_gpu)
     predictions = []
 
     for i in range(0, len(image_paths), batch_size):

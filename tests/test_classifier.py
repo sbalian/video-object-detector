@@ -58,6 +58,7 @@ def test_batch_run(mocker):
         classifier.batch_run(
             [pathlib.Path("cat.jpg")] * total_length,
             batch_size=batch_size,
+            use_gpu=False,
         )
         == [prediction] * total_length
     )
