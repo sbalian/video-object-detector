@@ -1,7 +1,9 @@
+import collections
 import concurrent.futures
 import datetime
 import fractions
 import functools
+import os
 import pathlib
 from typing import Annotated, Optional
 
@@ -129,47 +131,57 @@ def detect(
         ),
     ] = True,
 ):
-    """Classify images in INPUT_DIRECTORY.
+    """Classify the images nested in INPUT_DIRECTORY.
 
-    Writes the predictions to INPUT_DIRECTORY/predictions.od. Each line in
-    the output is a JSON containing the classification result for an image.
+    For each directory in the tree under INPUT_DIRECTORY, a
+    predictions.jsonl file is written for the images in that directory.
+    Each line in a predictions.jsonl is a JSON containing the
+    classification result for an image.
     """
 
     console = rich.console.Console()
 
-    output_path = input_directory / "predictions.od"
-
-    if output_path.exists() and output_path.is_dir():
-        logger.error(f"cannot have directory {output_path}")
-        raise typer.Exit(code=1)
-
     with console.status(f"Looking for images in {input_directory} ..."):
-        paths = [
-            path
-            for path in input_directory.glob("*")
-            if media.is_likely_image(path)
-        ]
-    console.print(f"Found {len(paths)} images.")
+        directory_to_image_path = collections.defaultdict(list)
+        for root, _, files in os.walk(input_directory):
+            for file in files:
+                if media.is_likely_image(pathlib.Path(file)):
+                    directory_to_image_path[pathlib.Path(root)].append(
+                        pathlib.Path(root) / file
+                    )
+
+    output_paths = {
+        directory: directory / "predictions.jsonl"
+        for directory in directory_to_image_path.keys()
+    }
+
+    for output_path in output_paths.values():
+        if output_path.exists() and output_path.is_dir():
+            logger.error(f"cannot have directory {output_path}")
+            raise typer.Exit(code=1)
 
     console.print(
         "Classification started: "
         f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
     )
-    with console.status("Classifying ..."):
+
+    for directory, image_paths in rich.progress.track(
+        directory_to_image_path.items(), description="Classifying ..."
+    ):
         try:
-            predictions = classifier.batch_run(paths, batch_size, use_gpu)
+            predictions = classifier.batch_run(
+                image_paths, batch_size, use_gpu
+            )
         except classifier.NoGPUError:
             logger.error("No GPU found. Set --no-gpu.")
             raise typer.Exit(code=1)
+
+        with open(output_paths[directory], "a") as f:
+            for prediction in predictions:
+                f.write(prediction.model_dump_json())
+                f.write("\n")
 
     console.print(
         "Classification ended: "
         f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
     )
-
-    with open(output_path, "a") as f:
-        for prediction in predictions:
-            f.write(prediction.model_dump_json())
-            f.write("\n")
-
-    console.print(f"Wrote results to {output_path}.")
