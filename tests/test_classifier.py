@@ -24,8 +24,21 @@ def sample_prediction():
         ((1, 0.8), [(0.9, "cat")]),
     ],
 )
-def test_prediction_top_n(test_input, expected, sample_prediction):
-    assert sample_prediction.top_n(*test_input) == expected
+def test_prediction_top_classes(test_input, expected, sample_prediction):
+    assert sample_prediction.top_classes(*test_input) == expected
+
+
+def test_prediction_check_threshold():
+    assert classifier.Prediction.check_threshold(0.5) is None
+    with pytest.raises(ValueError):
+        assert classifier.Prediction.check_threshold(1.1) is None
+    with pytest.raises(ValueError):
+        assert classifier.Prediction.check_threshold(-2) is None
+
+
+def test_prediction_contains(sample_prediction):
+    assert sample_prediction.contains("cat", 0.89)
+    assert not sample_prediction.contains("cat", 0.95)
 
 
 def test_classifier_predicts():
@@ -37,7 +50,7 @@ def test_classifier_predicts():
         ]
     )
     for prediction in [prediction1, prediction2]:
-        _, label = prediction.top_n(1, 0.98)[0]
+        _, label = prediction.top_classes(1, 0.98)[0]
         assert label == "cat"
 
 

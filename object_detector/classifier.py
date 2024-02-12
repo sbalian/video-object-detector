@@ -1,7 +1,4 @@
-"""Detect objects in images using facebook/detr-resnet-101.
-
-Model from: https://huggingface.co/facebook/detr-resnet-101.
-"""
+"""Object detection using https://huggingface.co/facebook/detr-resnet-101."""
 
 import datetime
 import pathlib
@@ -13,7 +10,7 @@ import transformers
 from PIL import Image
 
 
-class NoGPUError(Exception):
+class GPUNotFoundError(Exception):
     pass
 
 
@@ -23,11 +20,27 @@ class Prediction(pydantic.BaseModel):
     image_path: pathlib.Path
     timestamp: datetime.datetime
 
-    def top_n(self, n: int, threshold: float) -> list[tuple[float, str]]:
-        """Return top `n` labels sorted by score > `threshold`."""
-
+    @staticmethod
+    def check_threshold(threshold: float) -> None:
         if not (0.0 <= threshold <= 1.0):
             raise ValueError(f"threshold {threshold} out of bounds [0.0, 1.0]")
+
+    def contains(self, class_: str, threshold: float) -> bool:
+        """Check if `class_` has score > `threshold`."""
+
+        self.check_threshold(threshold)
+
+        return class_ in set(
+            label
+            for score, label in zip(self.scores, self.labels)
+            if score > threshold
+        )
+
+    def top_classes(self, n: int, threshold: float) -> list[tuple[float, str]]:
+        """Return top `n` classes sorted by score > `threshold`."""
+
+        self.check_threshold(threshold)
+
         return sorted(
             [
                 (score, label)
@@ -61,10 +74,10 @@ class Classifier:
             if torch.cuda.is_available():
                 self.model.to("cuda")
             else:
-                raise NoGPUError
+                raise GPUNotFoundError
 
     def predict(self, image_paths: list[pathlib.Path]) -> list[Prediction]:
-        """Return predictions for a list of `images_paths`."""
+        """Return predictions for a list of images `images_paths`."""
 
         images = [Image.open(image_path) for image_path in image_paths]
         inputs = self.processor(images=images, return_tensors="pt")
@@ -102,7 +115,7 @@ class Classifier:
 def batch_run(
     image_paths: list[pathlib.Path], batch_size: int, use_gpu: bool
 ) -> list[Prediction]:
-    """Classify `image_paths` in batches of size `batch_size`."""
+    """Classify list of images `image_paths` in batches sized `batch_size`."""
 
     clf = Classifier(use_gpu=use_gpu)
     predictions = []
