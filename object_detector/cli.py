@@ -165,21 +165,28 @@ def detect(
         f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
     )
 
-    for directory, image_paths in rich.progress.track(
-        directory_to_image_path.items(), description="Classifying ..."
-    ):
-        try:
-            predictions = classifier.batch_run(
-                image_paths, batch_size, use_gpu
-            )
-        except classifier.NoGPUError:
-            logger.error("No GPU found. Set --no-gpu.")
-            raise typer.Exit(code=1)
+    progress = rich.progress.Progress(
+        rich.progress.TextColumn("[progress.description]{task.description}"),
+        rich.progress.BarColumn(),
+        rich.progress.TaskProgressColumn(),
+    )
 
-        with open(output_paths[directory], "a") as f:
-            for prediction in predictions:
-                f.write(prediction.model_dump_json())
-                f.write("\n")
+    with progress:
+        for directory, image_paths in progress.track(
+            directory_to_image_path.items(), description="Classifying ..."
+        ):
+            try:
+                predictions = classifier.batch_run(
+                    image_paths, batch_size, use_gpu
+                )
+            except classifier.GPUNotFoundError:
+                logger.error("No GPU found. Set --no-gpu.")
+                raise typer.Exit(code=1)
+
+            with open(output_paths[directory], "a") as f:
+                for prediction in predictions:
+                    f.write(prediction.model_dump_json())
+                    f.write("\n")
 
     console.print(
         "Classification ended: "
