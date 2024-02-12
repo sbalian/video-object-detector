@@ -7,12 +7,10 @@ import os
 import pathlib
 from typing import Annotated, Optional
 
-import rich.console
-import rich.progress
 import typer
 from loguru import logger
 
-from . import classifier, media
+from . import classifier, display, media
 
 app = typer.Typer()
 
@@ -70,27 +68,25 @@ def extract_frames(
     extension.
     """
 
-    console = rich.console.Console()
-
     worker = functools.partial(
         media.extract_frames,
         fps=fps,
         ffmpeg_output=output,
     )
 
-    with console.status(f"Looking for videos in {input_directory} ..."):
+    with display.status(f"Looking for videos in {input_directory} ..."):
         paths = [
             path
             for path in input_directory.glob("*")
             if media.is_likely_video(path)
         ]
-    console.print(f"Found {len(paths)} videos.")
+    display.print(f"Found {len(paths)} videos.")
 
-    console.print(
+    display.print(
         "Extraction started: "
         f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
     )
-    with console.status("Extracting frames ..."):
+    with display.status("Extracting frames ..."):
         with concurrent.futures.ProcessPoolExecutor(workers) as executor:
             futures = [executor.submit(worker, path) for path in paths]
     for future in concurrent.futures.as_completed(futures):
@@ -98,7 +94,7 @@ def extract_frames(
             future.result()
         except media.FrameExtractionError as extraction_error:
             logger.error(extraction_error)
-    console.print(
+    display.print(
         "Extraction ended: "
         f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
     )
@@ -139,9 +135,7 @@ def detect(
     classification result for an image.
     """
 
-    console = rich.console.Console()
-
-    with console.status(f"Looking for images in {input_directory} ..."):
+    with display.status(f"Looking for images in {input_directory} ..."):
         directory_to_image_path = collections.defaultdict(list)
         for root, _, files in os.walk(input_directory):
             for file in files:
@@ -160,19 +154,13 @@ def detect(
             logger.error(f"cannot have directory {output_path}")
             raise typer.Exit(code=1)
 
-    console.print(
+    display.print(
         "Classification started: "
         f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
     )
 
-    progress = rich.progress.Progress(
-        rich.progress.TextColumn("[progress.description]{task.description}"),
-        rich.progress.BarColumn(),
-        rich.progress.TaskProgressColumn(),
-    )
-
-    with progress:
-        for directory, image_paths in progress.track(
+    with display.PROGRESS:
+        for directory, image_paths in display.PROGRESS.track(
             directory_to_image_path.items(), description="Classifying ..."
         ):
             try:
@@ -188,7 +176,7 @@ def detect(
                     f.write(prediction.model_dump_json())
                     f.write("\n")
 
-    console.print(
+    display.print(
         "Classification ended: "
         f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
     )
