@@ -1,5 +1,6 @@
 import datetime
 import fractions
+import json
 import os
 import pathlib
 from typing import Annotated
@@ -143,3 +144,40 @@ def detect(
         "Classification ended: "
         f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
     )
+
+
+@app.command()
+def show(
+    predictions_path: Annotated[
+        pathlib.Path,
+        typer.Argument(
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            resolve_path=True,
+            help="Path to predictions JSONL file.",
+        ),
+    ],
+    class_label: Annotated[
+        str,
+        typer.Argument(
+            help="Class to look for. Score must exceed threshold.",
+        ),
+    ],
+    threshold: Annotated[
+        float,
+        typer.Option(
+            "--threshold",
+            "-t",
+            help="Classification threshold.",
+        ),
+    ] = 0.9,
+):
+    """Print the image paths in PREDICTIONS_PATH that have CLASS_LABEL."""
+
+    for prediction in [
+        classifier.Prediction(**json.loads(data))
+        for data in predictions_path.read_text().splitlines()
+    ]:
+        if prediction.contains(class_label, threshold):
+            typer.echo(prediction.image_path.as_posix())

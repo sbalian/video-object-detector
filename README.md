@@ -45,12 +45,19 @@ results are written to `predictions.jsonl`.
 Each line in this JSONL file contains the prediction result for a
 single frame.
 
+If you would like to print the paths of images containing a certain class:
+
+```bash
+poetry run object-detect show predictions.jsonl cat
+```
+
 For more CLI options:
 
 ```bash
 poetry run object-detect --help
 poetry run object-detect extract-frames --help
 poetry run object-detect detect --help
+poetry run object-detect show --help
 ```
 
 **Tip**: To run the extraction in parallel for multiple videos,
