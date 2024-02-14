@@ -54,4 +54,4 @@ def extract_frames(
             capture_stderr=True
         )
     except ffmpeg.Error as ffmpeg_error:
-        raise FrameExtractionError(ffmpeg_error.stderr.decode())
+        raise FrameExtractionError(ffmpeg_error.stderr.decode().strip())
