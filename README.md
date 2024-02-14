@@ -53,6 +53,12 @@ poetry run object-detect extract-frames --help
 poetry run object-detect detect --help
 ```
 
+Tip: to run the extraction in parallel for multiple videos:
+
+```bash
+find "/path/to/videos" -name "*.mp4" | xargs -P $(nproc) -I % poetry run object-detect extract-frames % %.frames
+```
+
 ## Development
 
 Follow the installation instructions above. To run the tests:
