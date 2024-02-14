@@ -27,25 +27,23 @@ poetry install
 
 ## Usage
 
-There are two steps: frame extraction and frame classification.
+There are two steps: frame extraction and object detection in the extracted
+frames.
 
 ```bash
-poetry run object-detect extract-frames videos/
+poetry run object-detect extract-frames myvideo.mp4 frames/
 ```
 
-This will extract frames from the videos found in `videos/`.
-The frames are stored in `<video-name-without-extension>.frames/` for each
-video in `videos/`.
+This will extract frames from `myvideo.mp4` into `frames/`.
 
 ```bash
-poetry run object-detect detect videos/
+poetry run object-detect detect frames/
 ```
 
-This will classify all the frames nested in `videos/`. The prediction
-results are written in `predictions.jsonl` files.
-There will be a JSONL file for each directory in the tree under `videos/`
-containing the results for the images in that directory. Each line
-in a JSONL file contains the prediction result for a single image.
+This will classify all the frames in `frames/`. The prediction
+results will be written to `predictions.jsonl`.
+Each line in a JSONL file will contain the prediction result for a
+single frame.
 
 For more CLI options:
 

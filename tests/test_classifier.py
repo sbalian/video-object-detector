@@ -1,4 +1,5 @@
 import datetime
+import json
 import pathlib
 
 import pytest
@@ -42,7 +43,7 @@ def test_prediction_contains(sample_prediction):
 
 
 def test_classifier_predicts():
-    clf = classifier.Classifier(use_gpu=False)
+    clf = classifier.Classifier(force_cpu=True)
     [prediction1, prediction2] = clf.predict(
         [
             pathlib.Path("tests/data/cat.jpg"),
@@ -54,7 +55,7 @@ def test_classifier_predicts():
         assert label == "cat"
 
 
-def test_batch_run(mocker):
+def test_batch_run(mocker, tmp_path):
     prediction = classifier.Prediction(
         labels=["cat"],
         scores=[0.9],
@@ -70,8 +71,16 @@ def test_batch_run(mocker):
     assert (
         classifier.batch_run(
             [pathlib.Path("cat.jpg")] * total_length,
-            batch_size=batch_size,
-            use_gpu=False,
+            batch_size,
+            True,
+            tmp_path / "predictions.jsonl",
         )
         == [prediction] * total_length
     )
+    predictions_from_file = [
+        classifier.Prediction(**json.loads(data))
+        for data in pathlib.Path(tmp_path / "predictions.jsonl")
+        .read_text()
+        .splitlines()
+    ]
+    assert predictions_from_file == [prediction] * total_length

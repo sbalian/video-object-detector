@@ -1,11 +1,8 @@
-import collections
-import concurrent.futures
 import datetime
 import fractions
-import functools
 import os
 import pathlib
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
 from loguru import logger
@@ -23,14 +20,23 @@ def fraction(value: str) -> fractions.Fraction:
 
 @app.command()
 def extract_frames(
-    input_directory: Annotated[
+    video_path: Annotated[
         pathlib.Path,
         typer.Argument(
             exists=True,
+            file_okay=True,
+            dir_okay=False,
+            resolve_path=True,
+            help="Path to input video file.",
+        ),
+    ],
+    output_directory: Annotated[
+        pathlib.Path,
+        typer.Argument(
             file_okay=False,
             dir_okay=True,
             resolve_path=True,
-            help="Directory containing videos.",
+            help="Output directory in which frames will be written.",
         ),
     ],
     fps: Annotated[
@@ -38,66 +44,43 @@ def extract_frames(
         typer.Option(
             "--fps",
             "-f",
-            help="Frames per second to extract. "
-            "For example, 25/1 means extract 25 frames every 1 second.",
+            help=(
+                "Frames per second. For example, 25/1 means extract "
+                "25 frames every 1 second."
+            ),
             parser=fraction,
         ),
     ] = fractions.Fraction(1, 3),
-    workers: Annotated[
-        Optional[int],
-        typer.Option(
-            "--workers",
-            "-w",
-            help="Number of maximum workers passed to multiprocessing (number "
-            "of available CPUs if unset).",
-        ),
-    ] = None,
-    output: Annotated[
+    output_format: Annotated[
         str,
         typer.Option(
-            "--output",
+            "--output-format",
             "-o",
-            help="ffmpeg output.",
+            help=(
+                "Output format. The ffmpeg output is "
+                "output_directory/output_format."
+            ),
         ),
     ] = "%04d.jpeg",
 ):
-    """Extract frames from videos in INPUT_DIRECTORY.
+    """Extract frames from VIDEO_PATH writing into OUTPUT_DIRECTORY."""
 
-    For each video a <name>.frames/ subdirectory is created containing the
-    extracted frames, where <name> is the name of the video without its
-    extension.
-    """
-
-    worker = functools.partial(
-        media.extract_frames,
-        fps=fps,
-        ffmpeg_output=output,
-    )
-
-    with display.status(f"Looking for videos in {input_directory} ..."):
-        paths = [
-            path
-            for path in input_directory.glob("*")
-            if media.is_likely_video(path)
-        ]
-    display.print(f"Found {len(paths)} videos.")
-
-    display.print(
+    display.PRINT(
         "Extraction started: "
         f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
     )
-    with display.status("Extracting frames ..."):
-        with concurrent.futures.ProcessPoolExecutor(workers) as executor:
-            futures = [executor.submit(worker, path) for path in paths]
-    for future in concurrent.futures.as_completed(futures):
+    with display.STATUS("Extracting frames ..."):
         try:
-            future.result()
+            media.extract_frames(
+                video_path, fps, output_directory, output_format
+            )
         except media.FrameExtractionError as extraction_error:
             logger.error(extraction_error)
-    display.print(
-        "Extraction ended: "
-        f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
-    )
+        else:
+            display.PRINT(
+                "Extraction ended: "
+                f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
+            )
 
 
 @app.command()
@@ -120,63 +103,46 @@ def detect(
             help="Batch size.",
         ),
     ] = 10,
-    use_gpu: Annotated[
+    output_path: Annotated[
+        pathlib.Path,
+        typer.Option(
+            "--output-path",
+            "-o",
+            file_okay=True,
+            dir_okay=False,
+            resolve_path=True,
+            help="Output path.",
+        ),
+    ] = pathlib.Path("predictions.jsonl"),
+    force_cpu: Annotated[
         bool,
         typer.Option(
-            "--gpu/--no-gpu", help="Use the GPU or just use the CPU."
+            "--force-cpu/--no-force-cpu",
+            help="Use the CPU even if a GPU is available.",
         ),
-    ] = True,
+    ] = False,
 ):
-    """Classify the images nested in INPUT_DIRECTORY.
+    """Classify the images found by recursively searching INPUT_DIRECTORY.
 
-    For each directory in the tree under INPUT_DIRECTORY, a
-    predictions.jsonl file is written for the images in that directory.
-    Each line in a predictions.jsonl is a JSON containing the
-    classification result for an image.
+    Each line in the output is a JSON containing the classification result
+    for an image.
     """
 
-    with display.status(f"Looking for images in {input_directory} ..."):
-        directory_to_image_path = collections.defaultdict(list)
+    with display.STATUS(f"Looking for images in {input_directory} ..."):
+        image_paths = []
         for root, _, files in os.walk(input_directory):
             for file in files:
                 if media.is_likely_image(pathlib.Path(file)):
-                    directory_to_image_path[pathlib.Path(root)].append(
-                        pathlib.Path(root) / file
-                    )
+                    image_paths.append(pathlib.Path(root) / file)
 
-    output_paths = {
-        directory: directory / "predictions.jsonl"
-        for directory in directory_to_image_path.keys()
-    }
-
-    for output_path in output_paths.values():
-        if output_path.exists() and output_path.is_dir():
-            logger.error(f"cannot have directory {output_path}")
-            raise typer.Exit(code=1)
-
-    display.print(
+    display.PRINT(
         "Classification started: "
         f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
     )
 
-    with display.PROGRESS:
-        for directory, image_paths in display.PROGRESS.track(
-            directory_to_image_path.items(), description="Classifying ..."
-        ):
-            try:
-                predictions = classifier.batch_run(
-                    image_paths, batch_size, use_gpu
-                )
-            except classifier.GPUNotFoundError:
-                logger.error("No GPU found. Set --no-gpu.")
-                raise typer.Exit(code=1)
+    classifier.batch_run(image_paths, batch_size, force_cpu, output_path)
 
-            with open(output_paths[directory], "a") as f:
-                for prediction in predictions:
-                    f.write(prediction.model_dump_json())
-                    f.write("\n")
-
-    display.print(
+    display.PRINT(
         "Classification ended: "
         f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
     )

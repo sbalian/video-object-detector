@@ -9,6 +9,8 @@ import torch
 import transformers
 from PIL import Image
 
+from . import display
+
 
 class GPUNotFoundError(Exception):
     pass
@@ -53,8 +55,8 @@ class Prediction(pydantic.BaseModel):
 
 
 class Classifier:
-    def __init__(self, use_gpu: bool = True) -> None:
-        self.use_gpu = use_gpu
+    def __init__(self, force_cpu: bool) -> None:
+        self.force_cpu = force_cpu
         model_name = "facebook/detr-resnet-101"
         revision = "no_timm"
         self.processor = transformers.DetrImageProcessor.from_pretrained(
@@ -70,18 +72,15 @@ class Classifier:
             self.model = transformers.DetrForObjectDetection.from_pretrained(
                 model_name, revision=revision
             )
-        if self.use_gpu:
-            if torch.cuda.is_available():
-                self.model.to("cuda")
-            else:
-                raise GPUNotFoundError
+        if not self.force_cpu and torch.cuda.is_available():
+            self.model.to("cuda")
 
     def predict(self, image_paths: list[pathlib.Path]) -> list[Prediction]:
         """Return predictions for a list of images `images_paths`."""
 
         images = [Image.open(image_path) for image_path in image_paths]
         inputs = self.processor(images=images, return_tensors="pt")
-        if self.use_gpu:
+        if not self.force_cpu and torch.cuda.is_available():
             inputs = inputs.to("cuda")
 
         with warnings.catch_warnings():
@@ -113,14 +112,26 @@ class Classifier:
 
 
 def batch_run(
-    image_paths: list[pathlib.Path], batch_size: int, use_gpu: bool
+    image_paths: list[pathlib.Path],
+    batch_size: int,
+    force_cpu: bool,
+    output_path: pathlib.Path,
 ) -> list[Prediction]:
     """Classify list of images `image_paths` in batches sized `batch_size`."""
 
-    clf = Classifier(use_gpu=use_gpu)
+    clf = Classifier(force_cpu=force_cpu)
     predictions = []
 
-    for i in range(0, len(image_paths), batch_size):
-        batch = image_paths[i : i + batch_size]
-        predictions.extend(clf.predict(batch))
+    with display.PROGRESS:
+        for i in display.PROGRESS.track(
+            range(0, len(image_paths), batch_size),
+            description="Classifying ...",
+        ):
+            batch = image_paths[i : i + batch_size]
+            batch_predictions = clf.predict(batch)
+            with open(output_path, "a") as f:
+                for prediction in batch_predictions:
+                    f.write(prediction.model_dump_json())
+                    f.write("\n")
+            predictions.extend(batch_predictions)
     return predictions
