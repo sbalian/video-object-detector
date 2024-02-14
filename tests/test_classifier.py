@@ -31,9 +31,9 @@ def test_prediction_top_classes(test_input, expected, sample_prediction):
 
 def test_prediction_check_threshold():
     assert classifier.Prediction.check_threshold(0.5) is None
-    with pytest.raises(ValueError):
+    with pytest.raises(classifier.ThresholdError):
         assert classifier.Prediction.check_threshold(1.1) is None
-    with pytest.raises(ValueError):
+    with pytest.raises(classifier.ThresholdError):
         assert classifier.Prediction.check_threshold(-2) is None
 
 

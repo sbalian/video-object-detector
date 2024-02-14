@@ -16,6 +16,10 @@ class GPUNotFoundError(Exception):
     pass
 
 
+class ThresholdError(ValueError):
+    pass
+
+
 class Prediction(pydantic.BaseModel):
     labels: list[str]
     scores: list[float]
@@ -25,7 +29,9 @@ class Prediction(pydantic.BaseModel):
     @staticmethod
     def check_threshold(threshold: float) -> None:
         if not (0.0 <= threshold <= 1.0):
-            raise ValueError(f"threshold {threshold} out of bounds [0.0, 1.0]")
+            raise ThresholdError(
+                f"threshold {threshold} out of bounds [0.0, 1.0]"
+            )
 
     def contains(self, class_: str, threshold: float) -> bool:
         """Check if `class_` has score > `threshold`."""
