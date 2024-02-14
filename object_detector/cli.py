@@ -66,21 +66,18 @@ def extract_frames(
     """Extract frames from VIDEO_PATH writing into OUTPUT_DIRECTORY."""
 
     display.PRINT(
-        "Extraction started: "
+        f"Extraction for {video_path} started: "
         f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
     )
-    with display.STATUS("Extracting frames ..."):
-        try:
-            media.extract_frames(
-                video_path, fps, output_directory, output_format
-            )
-        except media.FrameExtractionError as extraction_error:
-            logger.error(extraction_error)
-        else:
-            display.PRINT(
-                "Extraction ended: "
-                f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
-            )
+    try:
+        media.extract_frames(video_path, fps, output_directory, output_format)
+    except media.FrameExtractionError as extraction_error:
+        logger.error(f"{video_path}: {extraction_error}")
+    else:
+        display.PRINT(
+            f"Extraction for {video_path} ended: "
+            f"{datetime.datetime.now().strftime(DATETIME_FORMAT)}"
+        )
 
 
 @app.command()
