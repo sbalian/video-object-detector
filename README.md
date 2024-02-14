@@ -53,7 +53,8 @@ poetry run object-detect extract-frames --help
 poetry run object-detect detect --help
 ```
 
-Tip: to run the extraction in parallel for multiple videos:
+Tip: to run the extraction in parallel for multiple videos, use `xargs` with
+`-P`:
 
 ```bash
 find "/path/to/videos" -name "*.mp4" | xargs -P $(nproc) -I % poetry run object-detect extract-frames % %.frames
