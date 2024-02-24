@@ -87,7 +87,7 @@ To run the tests:
 ./test.sh
 ```
 
-## Full citation for model
+## Full citation for model used
 
 ```
 @article{DBLP:journals/corr/abs-2005-12872,
