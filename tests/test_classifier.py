@@ -4,7 +4,7 @@ import pathlib
 
 import pytest
 
-from object_detector import classifier
+from video_object_detector import classifier
 
 
 @pytest.fixture
@@ -65,7 +65,7 @@ def test_batch_run(mocker, tmp_path):
     batch_size = 10
     total_length = 100
     mocker.patch(
-        "object_detector.classifier.Classifier.predict",
+        "video_object_detector.classifier.Classifier.predict",
         return_value=[prediction] * batch_size,
     )
     assert (

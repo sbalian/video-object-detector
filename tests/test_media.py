@@ -5,7 +5,7 @@ import shutil
 
 import pytest
 
-from object_detector import media
+from video_object_detector import media
 
 
 @pytest.fixture

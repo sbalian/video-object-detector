@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "object-detector"
+name = "video-object-detector"
 version = "0.1.0"
 description = ""
 authors = ["Seto Balian <seto.balian@gmail.com>"]
@@ -36,7 +36,7 @@ url = "https://download.pytorch.org/whl/cu118"
 priority = "explicit"
 
 [tool.poetry.scripts]
-object-detect = 'object_detector.cli:app'
+object-detect = "video_object_detector.cli:app"
 
 [build-system]
 requires = ["poetry-core"]
@@ -48,7 +48,7 @@ line-length = 79
 [tool.isort]
 profile = "black"
 line_length = 79
-known_first_party = ["object_detector"]
+known_first_party = ["video_object_detector"]
 
 [tool.mypy]
 ignore_missing_imports = true
