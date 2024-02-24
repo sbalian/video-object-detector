@@ -6,7 +6,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout out repo
+    - name: Checkout
       uses: actions/checkout@v4
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -18,13 +18,5 @@ jobs:
       run: sudo apt update && sudo apt install ffmpeg --yes
     - name: Install package
       run: poetry install -n
-    - name: Test
-      run: poetry run pytest
-    - name: mypy
-      run: poetry run mypy --install-types --non-interactive video_object_detector
-    - name: black
-      run: poetry run black --check video_object_detector
-    - name: isort
-      run : poetry run isort --check video_object_detector
-    - name: flake8
-      run: poetry run flake8 video_object_detector
+    - name: Run tests
+      run: ./test.sh
