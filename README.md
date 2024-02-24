@@ -9,22 +9,24 @@ by
 
 ## Installation
 
-Make sure you have Python 3.10+. Next, install
-[Poetry](https://python-poetry.org/). Then:
+Install [ffmpeg](https://ffmpeg.org/). For example, on Linux with `apt`:
 
 ```bash
-# Install ffmpeg. For example, on Linux:
 sudo apt update
 sudo apt install ffmpeg --yes
+```
 
-# Clone this repo and navigate to it:
-git clone <repo-path>
-cd <repo-path>
+Make sure you have Python 3.10+.
+Next, install [Poetry](https://python-poetry.org/). Then:
 
-# Install the Python package, its dependencies and the
-# object-detect CLI tool:
+```bash
+git clone https://github.com/sbalian/video-object-detector.git
+cd video-object-detector
 poetry install
 ```
+
+This install the Python package, its dependencies and the
+object-detect CLI tool in a virtual environment managed by Poetry.
 
 ## Usage
 
