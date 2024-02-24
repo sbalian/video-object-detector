@@ -16,7 +16,7 @@ sudo apt update
 sudo apt install ffmpeg --yes
 ```
 
-Make sure you have Python 3.8.1 or above.
+Make sure you have Python 3.10.
 Next, install [Poetry](https://python-poetry.org/). Then:
 
 ```bash
