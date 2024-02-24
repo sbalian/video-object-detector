@@ -79,7 +79,7 @@ with `-P`. For example:
 find "/path/to/videos" -name "*.mp4" | xargs -P $(nproc) -I % poetry run object-detect extract-frames % %.frames
 ```
 
-### Tests
+## Tests
 
 To run the tests:
 
